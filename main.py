@@ -8,6 +8,9 @@ from tkinter import *
 from tkinter.ttk import *
 from tkinter import filedialog
 import os
+import tkinter as tk
+from tkinter import ttk
+
 
 """
 全局通用函数
@@ -24,6 +27,31 @@ def scrollbar_autohide(bar,widget):
     widget.bind("<Leave>", lambda e: hide())
     bar.bind("<Leave>", lambda e: hide())
 
+class Tooltip:
+    def __init__(self, widget, text):
+        self.widget = widget
+        self.text = text
+        self.tooltip = None
+        self.widget.bind("<Enter>", self.enter)
+        self.widget.bind("<Leave>", self.leave)
+
+    def enter(self, event=None):
+        x = y = 0
+        x, y, cx, cy = self.widget.bbox("insert")
+        x += self.widget.winfo_rootx() + self.widget.winfo_width() // 2
+        y += self.widget.winfo_rooty() + self.widget.winfo_height()
+        self.tooltip = tk.Toplevel(self.widget)
+        self.tooltip.wm_overrideredirect(True)
+        self.tooltip.wm_geometry("+%d+%d" % (x, y))
+        label = ttk.Label(self.tooltip, text=self.text, justify='left',
+                          background="#ffffff", relief='solid', borderwidth=1,
+                          font=("tahoma", "10", "normal"))
+        label.pack(ipadx=1)
+
+    def leave(self, event=None):
+        if self.tooltip:
+            self.tooltip.destroy()
+
 class WinGUI(Tk):
     def __init__(self):
         super().__init__()
@@ -31,7 +59,7 @@ class WinGUI(Tk):
         self.tk_tabs_lfaijb97 = Frame_lfaijb97(self)
 
     def __win(self):
-        self.title("Tkinter布局助手")
+        self.title("基于辅助特征的自注意力蒙特卡罗医学体积渲染去噪系统")
         # 设置窗口大小、居中
         width = 800
         height = 600
@@ -48,13 +76,13 @@ class Frame_lfaijb97(Notebook):
     def __frame(self):
 
         self.tk_tabs_lfaijb97_0 = Frame_lfaijb97_0(self)
-        self.add(self.tk_tabs_lfaijb97_0, text="选项卡1")
+        self.add(self.tk_tabs_lfaijb97_0, text="训练参数")
 
         self.tk_tabs_lfaijb97_1 = Frame_lfaijb97_1(self)
-        self.add(self.tk_tabs_lfaijb97_1, text="选项卡2")
+        self.add(self.tk_tabs_lfaijb97_1, text="训练")
 
         self.tk_tabs_lfaijb97_2 = Frame_lfaijb97_2(self)
-        self.add(self.tk_tabs_lfaijb97_2, text="3333")
+        self.add(self.tk_tabs_lfaijb97_2, text="测试")
 
         self.place(x=0, y=0, width=800, height=600)
 
@@ -70,8 +98,28 @@ class Frame_lfaijb97_1(Frame):
     def __init__(self,parent):
         super().__init__(parent)
         self.__frame()
+        self.tk_text_lfaux3dy = self.__tk_text_lfaux3dy()
+        self.tk_button_lfav0l8b = self.__tk_button_lfav0l8b()
+
     def __frame(self):
         self.place(x=0, y=0, width=800, height=600)
+
+    def __tk_text_lfaux3dy(self):
+        text = Text(self)
+        text.place(x=10, y=365, width=782, height=197)
+
+        vbar = Scrollbar(self)
+        text.configure(yscrollcommand=vbar.set)
+        vbar.config(command=text.yview)
+        vbar.place(x=777, y=365, width=15, height=197)
+        scrollbar_autohide(vbar, text)
+        return text
+
+    def __tk_button_lfav0l8b(self):
+        btn = Button(self, text="开始训练")
+        btn.place(x=10, y=120, width=87, height=36)
+        return btn
+
 
 class Frame_lfaijb97_2(Frame):
     def __init__(self,parent):
@@ -129,9 +177,12 @@ class Frame_lfaik3l6(Frame):
         self.tk_input_lfaizg8s = self.__tk_input_lfaizg8s()
         self.tk_label_lfaizodk = self.__tk_label_lfaizodk()
         self.tk_input_lfaizpv5 = self.__tk_input_lfaizpv5()
+        self.tk_button_lfawaqs2 = self.__tk_button_lfawaqs2()
+        self.tk_button_lfawat4x = self.__tk_button_lfawat4x()
+
     def __frame(self):
         self.place(x=0, y=0, width=798, height=575)
-
+    # EXR数据集路径
     def __tk_button_lfailbfn(self):
         btn = Button(self, text="EXR数据集路径", command=self.select_dataset_dir)
         btn.place(x=20, y=40, width=97, height=24)
@@ -198,21 +249,28 @@ class Frame_lfaik3l6(Frame):
 
     def __tk_label_lfairc6s(self):
         label = Label(self,text="epochs",anchor="center")
+        tooltip = Tooltip(label,
+                                "深度学习中，模型的训练通常分为多个轮次（Epoch）。每个Epoch中，模型会对整个训练数据集进行一次迭代，\n 通过不断地调整模型参数，使得模型的预测结果与真实标签更加接近。\n"
+                                "Epoch数量的选择需要根据具体任务和数据集进行调整，一般情况下，Epoch数量越多，模型性能会越好，")
         label.place(x=20, y=170, width=95, height=24)
         return label
 
     def __tk_label_lfairdsm(self):
         label = Label(self,text="batchSize",anchor="center")
+        tooltip = Tooltip(label, "Batch size是指每次迭代训练时使用的样本数量，通常会将训练数据集分成多个小批量，每个批量中的样本数就是batch size。\n较大的batch size可以提高训练效率，但可能会导致内存溢出或无法收敛；\n较小的batch size可以提高模型收敛的稳定性和准确性，但会增加训练时间。")
         label.place(x=20, y=200, width=95, height=24)
         return label
 
+    # Epoch
     def __tk_input_lfaisycj(self):
         ipt = Entry(self)
+        ipt.insert(0, "24")  # 在输入框中插入默认值
         ipt.place(x=120, y=170, width=150, height=24)
         return ipt
-
+    # BatchSize
     def __tk_input_lfaiszy4(self):
         ipt = Entry(self)
+        ipt.insert(0, "2")  # 在输入框中插入默认值
         ipt.place(x=120, y=200, width=150, height=24)
         return ipt
 
@@ -223,41 +281,58 @@ class Frame_lfaik3l6(Frame):
 
     def __tk_label_lfaitj73(self):
         label = Label(self,text="lrG",anchor="center")
+        tooltip = Tooltip(label,"lrG是指生成器的学习率，用于控制生成器在每次迭代中参数的更新量大小。\n较小的lrG可以提高模型的稳定性和鲁棒性，但训练时间可能会更长；\n较大的lrG可以加快模型的收敛速度，但可能会导致模型训练不稳定。")
         label.place(x=20, y=260, width=95, height=24)
         return label
 
     def __tk_label_lfaitkcw(self):
         label = Label(self,text="lrD",anchor="center")
+        tooltip = Tooltip(label,
+                          "判别器的学习率，用于控制判别器在每次迭代中参数的更新量大小。\n较小的lrD可以提高模型的稳定性和鲁棒性，但训练时间可能会更长；\n较大的lrD可以加快模型的收敛速度，但可能会导致模型训练不稳定。")
         label.place(x=20, y=290, width=95, height=24)
         return label
 
     def __tk_label_lfaitlst(self):
         label = Label(self,text="lrGamma",anchor="center")
+        tooltip = Tooltip(label,
+                          "学习率的下降率，通常在学习率下降策略中使用。当训练过程中模型的收敛速度变慢时，可以通过降低学习率来提高模型的性能。\nlrGamma可以控制每次学习率下降的比例，通常设置在0.1到0.5之间。较小的lrGamma可以使学习率下降得更加平滑，但需要更多的迭代次数；\n较大的lrGamma可以使学习率下降得更加快速，但可能会导致模型训练不稳定。")
+
         label.place(x=20, y=320, width=95, height=24)
         return label
 
     def __tk_label_lfaiu4cg(self):
         label = Label(self,text="lrMilestone",anchor="center")
+        tooltip = Tooltip(label,
+                          "学习率下降的里程碑，通常在学习率下降策略中使用。当训练过程中模型的收敛速度变慢时，可以通过降低学习率来提高模型的性能。\n"
+                          "lrMilestone指的是在哪些训练轮数之后下降学习率，通常设置为一个列表，表示在哪些训练轮数之后下降学习率。\n"
+                          "例如，如果将lrMilestone设置为[30, 60, 90]，则表示在第30、60和90个训练轮数之后下降学习率。")
+
         label.place(x=20, y=350, width=95, height=24)
         return label
-
+    #lrG
     def __tk_input_lfaiuqxx(self):
         ipt = Entry(self)
+        ipt.insert(0, "1e-4")  #
         ipt.place(x=120, y=260, width=150, height=24)
         return ipt
 
+    # lrD
     def __tk_input_lfaiuswa(self):
         ipt = Entry(self)
+        ipt.insert(0, "1e-4")  #
         ipt.place(x=120, y=290, width=150, height=24)
         return ipt
-
+    #lrGamma
     def __tk_input_lfaiutxy(self):
         ipt = Entry(self)
+        ipt.insert(0, "0.5")  #
         ipt.place(x=120, y=320, width=150, height=24)
         return ipt
 
+    #lrMileStone
     def __tk_input_lfaiuuxj(self):
         ipt = Entry(self)
+        ipt.insert(0, "3")  #
         ipt.place(x=120, y=350, width=150, height=24)
         return ipt
 
@@ -381,13 +456,31 @@ class Frame_lfaik3l6(Frame):
         ipt.place(x=400, y=350, width=150, height=24)
         return ipt
 
+    def __tk_button_lfawaqs2(self):
+        btn = Button(self, text="保存训练参数")
+        btn.place(x=300, y=410, width=97, height=28)
+        return btn
+
+    def __tk_button_lfawat4x(self):
+        btn = Button(self, text="导入训练参数")
+        btn.place(x=300, y=450, width=97, height=29)
+        return btn
+
 class Win(WinGUI):
     def __init__(self):
         super().__init__()
         self.__event_bind()
 
+    def SaveSetting(self, evt):
+        print("<Button>事件未处理", evt)
+
+    def ImportSetting(self, evt):
+        print("<Button>事件未处理", evt)
+
     def __event_bind(self):
-        pass
+        self.tk_tabs_lfaijb97.tk_tabs_lfaijb97_0.tk_frame_lfaik3l6.tk_button_lfawaqs2.bind('<Button>', self.SaveSetting)
+        self.tk_tabs_lfaijb97.tk_tabs_lfaijb97_0.tk_frame_lfaik3l6.tk_button_lfawat4x.bind('<Button>', self.ImportSetting)
+
 
 if __name__ == "__main__":
     win = Win()
