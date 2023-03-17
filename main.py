@@ -10,8 +10,27 @@ from tkinter import filedialog
 import os
 import tkinter as tk
 from tkinter import ttk
+import argparse
 
 
+parser = argparse.ArgumentParser()
+
+
+parser.add_argument("--seed", type=int, default=990819)
+parser.add_argument("--saveInterval", type=int, default=1)
+parser.add_argument("--GUpdateIters", type=int, default=1)
+parser.add_argument("--patchSize", type=int, default=128)
+parser.add_argument("--numPatches", type=int, default=400)
+
+parser.add_argument("--isLoad", dest="loadModel", action="store_true")
+parser.set_defaults(loadModel=False)
+parser.add_argument("--modelPath", type=str, default=None)
+
+parser.add_argument("--blockSize", type=int, default=8)
+parser.add_argument("--haloSize", type=int, default=3)
+parser.add_argument("--numHeads", type=int, default=4)
+parser.add_argument("--baseCh", type=int, default=256)
+parser.add_argument("--numGradientCheckpoint", type=int, default=0)
 """
 全局通用函数
 """
@@ -132,13 +151,17 @@ class Frame_lfaik3l6(Frame):
     def __init__(self,parent):
         super().__init__(parent)
         self.__frame()
-        self.tk_button_lfailbfn = self.__tk_button_lfailbfn()
-        self.tk_label_lfailtcr = self.__tk_label_lfailtcr()
-        self.tk_label_lfainqrg = self.__tk_label_lfainqrg()
-        self.tk_button_lfainxiq = self.__tk_button_lfainxiq()
-        self.tk_button_lfainyxp = self.__tk_button_lfainyxp()
-        self.tk_label_lfaipd7t = self.__tk_label_lfaipd7t()
-        self.tk_label_lfaipekh = self.__tk_label_lfaipekh()
+        self.tk_label_PathSetting = self.__tk_label_PathSetting()
+        # Exr 路径选择
+        self.tk_button_SelectExrPath = self.__tk_button_SelectExrPath()
+        self.tk_label_ExrPath = self.__tk_label_ExrPath()
+        # H5 数据集
+        self.tk_button_SelectH5DatasetPath = self.__tk_button_SelectH5DatasetPath()
+        self.tk_label_H5DatasetPath = self.__tk_label_H5DatasetPath()
+        # 模型路径
+        self.tk_button_ModelOutputPath = self.__tk_button_ModelOutputPath()
+        self.tk_label_ModelOutputPath = self.__tk_label_ModelOutputPath()
+
         self.tk_label_lfaiqnwx = self.__tk_label_lfaiqnwx()
         self.tk_label_lfairc6s = self.__tk_label_lfairc6s()
         self.tk_label_lfairdsm = self.__tk_label_lfairdsm()
@@ -182,66 +205,75 @@ class Frame_lfaik3l6(Frame):
 
     def __frame(self):
         self.place(x=0, y=0, width=798, height=575)
-    # EXR数据集路径
-    def __tk_button_lfailbfn(self):
-        btn = Button(self, text="EXR数据集路径", command=self.select_dataset_dir)
-        btn.place(x=20, y=40, width=97, height=24)
-        return btn
-
-    def __tk_label_lfailtcr(self):
+    # 数据集与模型路径设置
+    def __tk_label_PathSetting(self): # lfailtcr PathSetting
         label = Label(self,text="数据集与模型路径设置",anchor="center")
         label.place(x=20, y=10, width=133, height=24)
         return label
 
-    def __tk_label_lfainqrg(self):
+    # <editor-fold desc="EXR数据集路径按钮">
+    # EXR数据集路径按钮
+    def __tk_button_SelectExrPath(self): #lfailbfn SelectExrPath
+        btn = Button(self, text="EXR数据集路径")
+        btn.place(x=20, y=40, width=97, height=24)
+        return btn
+
+    def __tk_label_ExrPath(self): # lfainqrg
         label = Label(self,text="请选择EXR数据集路径",anchor="center")
         label.place(x=120, y=40, width=560, height=24)
         return label
 
     def select_dataset_dir(self):
         dir_path = filedialog.askdirectory()
-        print("Selected h5 dataset directory path:", dir_path)
+        print("Selected Exr dataset directory path:", dir_path)
         if os.listdir(dir_path):
-            self.tk_label_lfainqrg.config(text=dir_path)
+            self.tk_label_ExrPath.config(text=dir_path)
+            parser.set_defaults(inDir=dir_path)
         else:
-            self.tk_label_lfainqrg.config(text="所选文件夹为空")
+            self.tk_label_ExrPath.config(text="所选文件夹为空")
+
+    # </editor-fold>
+
+    # <editor-fold desc="H5数据集路径按钮">
+    def __tk_button_SelectH5DatasetPath(self): # SelectH5DatasetPath
+        btn = Button(self, text="h5数据集路径")
+        btn.place(x=20, y=70, width=97, height=24)
+        return btn
+
+    def __tk_label_H5DatasetPath(self): # SelectH5DatasetPath
+        label = Label(self,text="请选择生成的h5数据集要保存的文件夹路径",anchor="center")
+        label.place(x=120, y=70, width=560, height=24)
+        return label
 
     def select_dataset_h5_dir(self):
         dir_path = filedialog.askdirectory()
         print("Selected h5 dataset directory path:", dir_path)
         if os.listdir(dir_path):
-            self.tk_label_lfaipd7t.config(text=dir_path)
+            self.tk_label_H5DatasetPath.config(text=dir_path)
+            parser.set_defaults(datasetDir=dir_path)
         else:
-            self.tk_label_lfaipd7t.config(text="所选文件夹为空")
+            self.tk_label_H5DatasetPath.config(text="所选文件夹为空")
 
-    def select_model_output_dir(self):
-        dir_path = filedialog.askdirectory()
-        print("Selected model output directory path:", dir_path)
-        if os.listdir(dir_path):
-            self.tk_label_lfaipekh.config(text=dir_path)
-        else:
-            self.tk_label_lfaipekh.config(text="所选文件夹为空")
+    # </editor-fold>
 
-    def __tk_button_lfainxiq(self):
-        btn = Button(self, text="h5数据集路径", command=self.select_dataset_h5_dir)
-        btn.place(x=20, y=70, width=97, height=24)
-        return btn
-
-    def __tk_button_lfainyxp(self):
+    def __tk_button_ModelOutputPath(self): # lfainyxp
         btn = Button(self, text="pt模型保存路径", command=self.select_model_output_dir)
         btn.place(x=20, y=100, width=97, height=24)
         return btn
 
-    def __tk_label_lfaipd7t(self):
-        label = Label(self,text="请选择生成的h5数据集要保存的文件夹路径",anchor="center")
-        label.place(x=120, y=70, width=560, height=24)
-        return label
-
-    def __tk_label_lfaipekh(self):
+    def __tk_label_ModelOutputPath(self):
         label = Label(self,text="请选择pt模型保存路径",anchor="center")
         label.place(x=120, y=100, width=560, height=24)
         return label
 
+    def select_model_output_dir(self): # lfaipekh ModelOutputPath
+        dir_path = filedialog.askdirectory()
+        print("Selected model output directory path:", dir_path)
+        if os.listdir(dir_path):
+            self.tk_label_ModelOutputPath.config(text=dir_path)
+            parser.set_defaults(outDir=dir_path)
+        else:
+            self.tk_label_ModelOutputPath.config(text="所选文件夹为空")
     def __tk_label_lfaiqnwx(self):
         label = Label(self,text="训练参数设置",anchor="center")
         label.place(x=20, y=140, width=95, height=24)
@@ -471,6 +503,26 @@ class Win(WinGUI):
         super().__init__()
         self.__event_bind()
 
+    # def SelectExrPath(self, evt):
+    #     self.tk_tabs_lfaijb97.tk_tabs_lfaijb97_0.tk_frame_lfaik3l6.tk_button_SelectExrPath.config(state=tk.DISABLED)
+    #     dir_path = filedialog.askdirectory()
+    #     print("Selected Exr dataset directory path:", dir_path, evt)
+    #     if os.listdir(dir_path):
+    #         self.tk_tabs_lfaijb97.tk_tabs_lfaijb97_0.tk_frame_lfaik3l6.tk_label_ExrPath.config(text=dir_path)
+    #         parser.set_defaults(inDir=dir_path)
+    #     else:
+    #         self.tk_tabs_lfaijb97.tk_tabs_lfaijb97_0.tk_frame_lfaik3l6.tk_label_ExrPath.config(text="所选文件夹为空")
+    #     self.tk_tabs_lfaijb97.tk_tabs_lfaijb97_0.tk_frame_lfaik3l6.tk_button_SelectExrPath.config(state=tk.NORMAL)
+    #
+    # def SelectH5DatasetPath(self, evt):
+    #     dir_path = filedialog.askdirectory()
+    #     print("Selected h5 dataset directory path:", dir_path, evt)
+    #     if os.listdir(dir_path):
+    #         self.tk_tabs_lfaijb97.tk_tabs_lfaijb97_0.tk_frame_lfaik3l6.tk_label_H5DatasetPath.config(text=dir_path)
+    #         parser.set_defaults(datasetDir=dir_path)
+    #     else:
+    #         self.tk_tabs_lfaijb97.tk_tabs_lfaijb97_0.tk_frame_lfaik3l6.tk_label_H5DatasetPath.config(text="所选文件夹为空")
+
     def SaveSetting(self, evt):
         print("<Button>事件未处理", evt)
 
@@ -478,8 +530,19 @@ class Win(WinGUI):
         print("<Button>事件未处理", evt)
 
     def __event_bind(self):
+        # self.tk_tabs_lfaijb97.tk_tabs_lfaijb97_0.tk_frame_lfaik3l6.tk_button_SelectExrPath.bind('<Button>', self.SelectExrPath)
+        # self.tk_tabs_lfaijb97.tk_tabs_lfaijb97_0.tk_frame_lfaik3l6.tk_button_SelectH5DatasetPath.bind('<Button>', self.SelectH5DatasetPath)
         self.tk_tabs_lfaijb97.tk_tabs_lfaijb97_0.tk_frame_lfaik3l6.tk_button_lfawaqs2.bind('<Button>', self.SaveSetting)
         self.tk_tabs_lfaijb97.tk_tabs_lfaijb97_0.tk_frame_lfaik3l6.tk_button_lfawat4x.bind('<Button>', self.ImportSetting)
+
+def train():
+    args, unknown = parser.parse_known_args()
+    print("inDir parameter value:", args.inDir)
+    print("datasetDir parameter value:", args.datasetDir)
+
+    # 格式化为字符串
+    # print("inDir parameter value: {}".format(args.inDir))
+    # print("datasetDir parameter value: {}".format(args.datasetDir))
 
 
 if __name__ == "__main__":
